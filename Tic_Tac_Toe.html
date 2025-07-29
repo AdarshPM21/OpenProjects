@@ -1,0 +1,161 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tic Tac Toe</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        table { margin: 20px auto; border-collapse: collapse; }
+        td {
+            width: 60px; height: 60px;
+            border: 2px solid #000;
+            font-size: 2em;
+            text-align: center;
+            cursor: pointer;
+        }
+        #modeSelect { margin: 20px; }
+        #status { margin: 20px; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+    <h1>Tic Tac Toe</h1>
+    <div id="modeSelect">
+        <button onclick="setMode('pvp')">Player vs Player</button>
+        <button onclick="setMode('pvc')">Player vs Computer</button>
+    </div>
+    <div id="status">Choose a mode to start</div>
+    <table id="board"></table>
+    <script>
+        let board = [];
+        let currentPlayer = 'X';
+        let gameMode = '';
+        let gameOver = false;
+
+        function setMode(mode) {
+            gameMode = mode;
+            resetGame();
+        }
+
+        function resetGame() {
+            board = [['', '', ''], ['', '', ''], ['', '', '']];
+            currentPlayer = 'X';
+            gameOver = false;
+            document.getElementById('status').textContent = `Current Player: ${currentPlayer}`;
+            drawBoard();
+        }
+
+        function drawBoard() {
+            const table = document.getElementById('board');
+            table.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                const row = document.createElement('tr');
+                for (let j = 0; j < 3; j++) {
+                    const cell = document.createElement('td');
+                    cell.textContent = board[i][j];
+                    cell.onclick = () => makeMove(i, j);
+                    row.appendChild(cell);
+                }
+                table.appendChild(row);
+            }
+        }
+
+        function makeMove(i, j) {
+            if (gameOver || board[i][j] !== '') return;
+            board[i][j] = currentPlayer;
+            drawBoard();
+            if (checkWinner(currentPlayer)) {
+                document.getElementById('status').textContent = `${currentPlayer} wins!`;
+                gameOver = true;
+                return;
+            }
+            if (isBoardFull()) {
+                document.getElementById('status').textContent = `It's a draw!`;
+                gameOver = true;
+                return;
+            }
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            document.getElementById('status').textContent = `Current Player: ${currentPlayer}`;
+            if (gameMode === 'pvc' && currentPlayer === 'O') {
+                setTimeout(computerMove, 500);
+            }
+        }
+
+        function computerMove() {
+            let move = findBestMove();
+            if (move) {
+                board[move.i][move.j] = 'O';
+                drawBoard();
+                if (checkWinner('O')) {
+                    document.getElementById('status').textContent = `O wins!`;
+                    gameOver = true;
+                    return;
+                }
+                if (isBoardFull()) {
+                    document.getElementById('status').textContent = `It's a draw!`;
+                    gameOver = true;
+                    return;
+                }
+                currentPlayer = 'X';
+                document.getElementById('status').textContent = `Current Player: ${currentPlayer}`;
+            }
+        }
+
+        function findBestMove() {
+            // Try to win
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (board[i][j] === '') {
+                        board[i][j] = 'O';
+                        if (checkWinner('O')) {
+                            board[i][j] = '';
+                            return {i, j};
+                        }
+                        board[i][j] = '';
+                    }
+                }
+            }
+            // Block player from winning
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (board[i][j] === '') {
+                        board[i][j] = 'X';
+                        if (checkWinner('X')) {
+                            board[i][j] = '';
+                            return {i, j};
+                        }
+                        board[i][j] = '';
+                    }
+                }
+            }
+            // Take center
+            if (board[1][1] === '') return {i: 1, j: 1};
+            // Take corners
+            const corners = [[0,0],[0,2],[2,0],[2,2]];
+            for (let [i,j] of corners) {
+                if (board[i][j] === '') return {i, j};
+            }
+            // Take sides
+            const sides = [[0,1],[1,0],[1,2],[2,1]];
+            for (let [i,j] of sides) {
+                if (board[i][j] === '') return {i, j};
+            }
+            return null;
+        }
+
+        function checkWinner(player) {
+            for (let i = 0; i < 3; i++) {
+                if (board[i][0] === player && board[i][1] === player && board[i][2] === player) return true;
+                if (board[0][i] === player && board[1][i] === player && board[2][i] === player) return true;
+            }
+            if (board[0][0] === player && board[1][1] === player && board[2][2] === player) return true;
+            if (board[0][2] === player && board[1][1] === player && board[2][0] === player) return true;
+            return false;
+        }
+
+        function isBoardFull() {
+            return board.flat().every(cell => cell !== '');
+        }
+    </script>
+</body>
+</html>
