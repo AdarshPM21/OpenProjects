@@ -1,161 +1,282 @@
 
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Tic Tac Toe</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        table { margin: 20px auto; border-collapse: collapse; }
-        td {
-            width: 60px; height: 60px;
-            border: 2px solid #000;
-            font-size: 2em;
+<meta charset="utf-8"/>
+<title>Tic Tac Toe</title>
+<style>
+        body {
+            font-family: Arial, sans-serif;
             text-align: center;
-            cursor: pointer;
+            background-color: #f0f0f0;
         }
-        #modeSelect { margin: 20px; }
-        #status { margin: 20px; font-size: 1.2em; }
+        h1 {
+            margin-top: 20px;
+        }
+        #game {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-gap: 5px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: white;
+            font-size: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid #333;
+        }
+        #modeSelector {
+            margin-top: 20px;
+        }
+        canvas {
+            position: fixed;
+            pointer-events: none;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
     </style>
 </head>
 <body>
-    <h1>Tic Tac Toe</h1>
-    <div id="modeSelect">
-        <button onclick="setMode('pvp')">Player vs Player</button>
-        <button onclick="setMode('pvc')">Player vs Computer</button>
-    </div>
-    <div id="status">Choose a mode to start</div>
-    <table id="board"></table>
-    <script>
-        let board = [];
-        let currentPlayer = 'X';
-        let gameMode = '';
-        let gameOver = false;
+<table id="board">
+<tr>
+<td onclick="makeMove(this, 0, 0)"></td>
+<td onclick="makeMove(this, 0, 1)"></td>
+<td onclick="makeMove(this, 0, 2)"></td>
+</tr>
+<tr>
+<td onclick="makeMove(this, 1, 0)"></td>
+<td onclick="makeMove(this, 1, 1)"></td>
+<td onclick="makeMove(this, 1, 2)"></td>
+</tr>
+<tr>
+<td onclick="makeMove(this, 2, 0)"></td>
+<td onclick="makeMove(this, 2, 1)"></td>
+<td onclick="makeMove(this, 2, 2)"></td>
+</tr>
+</table>
+<div id="result" style="margin-top: 20px; font-size: 20px; font-weight: bold;"></div>
 
-        function setMode(mode) {
-            gameMode = mode;
-            resetGame();
+<h1>Tic Tac Toe</h1>
+<div id="modeSelector">
+<label for="mode">Choose Mode:</label>
+<select id="mode">
+<option value="pvp">Player vs Player</option>
+<option value="pvc">Player vs Computer</option>
+</select>
+</div>
+<div id="game"></div>
+<canvas id="confettiCanvas"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js">
+    let board = [
+        ["", "", ""],
+        ["", "", ""],
+        ["", "", ""]
+    ];
+    let currentPlayer = "X";
+    let gameOver = false;
+
+    function makeMove(cell, row, col) {
+        if (gameOver || board[row][col] !== "") return;
+        board[row][col] = currentPlayer;
+        cell.innerHTML = currentPlayer;
+        if (checkWinner(currentPlayer)) {
+            document.getElementById("result").innerText = currentPlayer + " wins!";
+            gameOver = true;
+        } else if (isBoardFull()) {
+            document.getElementById("result").innerText = "It's a draw!";
+            gameOver = true;
+        } else {
+            currentPlayer = currentPlayer === "X" ? "O" : "X";
+        }
+    }
+
+    function checkWinner(player) {
+        for (let i = 0; i < 3; i++) {
+            if (board[i][0] === player && board[i][1] === player && board[i][2] === player) return true;
+            if (board[0][i] === player && board[1][i] === player && board[2][i] === player) return true;
+        }
+        if (board[0][0] === player && board[1][1] === player && board[2][2] === player) return true;
+        if (board[0][2] === player && board[1][1] === player && board[2][0] === player) return true;
+        return false;
+    }
+
+    function isBoardFull() {
+        return board.flat().every(cell => cell !== "");
+    }
+
+    function resetGame() {
+        board = [
+            ["", "", ""],
+            ["", "", ""],
+            ["", "", ""]
+        ];
+        currentPlayer = "X";
+        gameOver = false;
+        document.querySelectorAll("#board td").forEach(cell => cell.innerHTML = "");
+        document.getElementById("result").innerText = "";
+    }
+    </script>
+<script>
+        const gameContainer = document.getElementById('game');
+        const modeSelector = document.getElementById('mode');
+        let board = ["", "", "", "", "", "", "", "", ""];
+        let currentPlayer = "X";
+        let gameActive = true;
+
+        function renderBoard() {
+            gameContainer.innerHTML = "";
+            board.forEach((cell, index) => {
+                const cellDiv = document.createElement("div");
+                cellDiv.classList.add("cell");
+                cellDiv.textContent = cell;
+                cellDiv.addEventListener("click", () => handleCellClick(index));
+                gameContainer.appendChild(cellDiv);
+            });
         }
 
-        function resetGame() {
-            board = [['', '', ''], ['', '', ''], ['', '', '']];
-            currentPlayer = 'X';
-            gameOver = false;
-            document.getElementById('status').textContent = `Current Player: ${currentPlayer}`;
-            drawBoard();
-        }
-
-        function drawBoard() {
-            const table = document.getElementById('board');
-            table.innerHTML = '';
-            for (let i = 0; i < 3; i++) {
-                const row = document.createElement('tr');
-                for (let j = 0; j < 3; j++) {
-                    const cell = document.createElement('td');
-                    cell.textContent = board[i][j];
-                    cell.onclick = () => makeMove(i, j);
-                    row.appendChild(cell);
-                }
-                table.appendChild(row);
-            }
-        }
-
-        function makeMove(i, j) {
-            if (gameOver || board[i][j] !== '') return;
-            board[i][j] = currentPlayer;
-            drawBoard();
-            if (checkWinner(currentPlayer)) {
-                document.getElementById('status').textContent = `${currentPlayer} wins!`;
-                gameOver = true;
+        function handleCellClick(index) {
+            if (!gameActive || board[index] !== "") return;
+            board[index] = currentPlayer;
+            renderBoard();
+            if (checkWin(currentPlayer)) {
+                gameActive = false;
+                setTimeout(() => {
+                    alert(currentPlayer + " wins!");
+                    launchConfetti();
+                }, 100);
                 return;
             }
-            if (isBoardFull()) {
-                document.getElementById('status').textContent = `It's a draw!`;
-                gameOver = true;
+            if (board.every(cell => cell !== "")) {
+                gameActive = false;
+                setTimeout(() => alert("It's a draw!"), 100);
                 return;
             }
-            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-            document.getElementById('status').textContent = `Current Player: ${currentPlayer}`;
-            if (gameMode === 'pvc' && currentPlayer === 'O') {
+            currentPlayer = currentPlayer === "X" ? "O" : "X";
+            if (modeSelector.value === "pvc" && currentPlayer === "O") {
                 setTimeout(computerMove, 500);
             }
         }
 
         function computerMove() {
-            let move = findBestMove();
-            if (move) {
-                board[move.i][move.j] = 'O';
-                drawBoard();
-                if (checkWinner('O')) {
-                    document.getElementById('status').textContent = `O wins!`;
-                    gameOver = true;
-                    return;
-                }
-                if (isBoardFull()) {
-                    document.getElementById('status').textContent = `It's a draw!`;
-                    gameOver = true;
-                    return;
-                }
-                currentPlayer = 'X';
-                document.getElementById('status').textContent = `Current Player: ${currentPlayer}`;
-            }
-        }
-
-        function findBestMove() {
-            // Try to win
-            for (let i = 0; i < 3; i++) {
-                for (let j = 0; j < 3; j++) {
-                    if (board[i][j] === '') {
-                        board[i][j] = 'O';
-                        if (checkWinner('O')) {
-                            board[i][j] = '';
-                            return {i, j};
-                        }
-                        board[i][j] = '';
+            let bestScore = -Infinity;
+            let move;
+            for (let i = 0; i < board.length; i++) {
+                if (board[i] === "") {
+                    board[i] = "O";
+                    let score = minimax(board, 0, false);
+                    board[i] = "";
+                    if (score > bestScore) {
+                        bestScore = score;
+                        move = i;
                     }
                 }
             }
-            // Block player from winning
-            for (let i = 0; i < 3; i++) {
-                for (let j = 0; j < 3; j++) {
-                    if (board[i][j] === '') {
-                        board[i][j] = 'X';
-                        if (checkWinner('X')) {
-                            board[i][j] = '';
-                            return {i, j};
-                        }
-                        board[i][j] = '';
+            board[move] = "O";
+            renderBoard();
+            if (checkWin("O")) {
+                gameActive = false;
+                setTimeout(() => {
+                    alert("O wins!");
+                    launchConfetti();
+                }, 100);
+                return;
+            }
+            if (board.every(cell => cell !== "")) {
+                gameActive = false;
+                setTimeout(() => alert("It's a draw!"), 100);
+                return;
+            }
+            currentPlayer = "X";
+        }
+
+        function minimax(newBoard, depth, isMaximizing) {
+            if (checkWin("O", newBoard)) return 10 - depth;
+            if (checkWin("X", newBoard)) return depth - 10;
+            if (newBoard.every(cell => cell !== "")) return 0;
+
+            if (isMaximizing) {
+                let bestScore = -Infinity;
+                for (let i = 0; i < newBoard.length; i++) {
+                    if (newBoard[i] === "") {
+                        newBoard[i] = "O";
+                        let score = minimax(newBoard, depth + 1, false);
+                        newBoard[i] = "";
+                        bestScore = Math.max(score, bestScore);
                     }
                 }
+                return bestScore;
+            } else {
+                let bestScore = Infinity;
+                for (let i = 0; i < newBoard.length; i++) {
+                    if (newBoard[i] === "") {
+                        newBoard[i] = "X";
+                        let score = minimax(newBoard, depth + 1, true);
+                        newBoard[i] = "";
+                        bestScore = Math.min(score, bestScore);
+                    }
+                }
+                return bestScore;
             }
-            // Take center
-            if (board[1][1] === '') return {i: 1, j: 1};
-            // Take corners
-            const corners = [[0,0],[0,2],[2,0],[2,2]];
-            for (let [i,j] of corners) {
-                if (board[i][j] === '') return {i, j};
-            }
-            // Take sides
-            const sides = [[0,1],[1,0],[1,2],[2,1]];
-            for (let [i,j] of sides) {
-                if (board[i][j] === '') return {i, j};
-            }
-            return null;
         }
 
-        function checkWinner(player) {
-            for (let i = 0; i < 3; i++) {
-                if (board[i][0] === player && board[i][1] === player && board[i][2] === player) return true;
-                if (board[0][i] === player && board[1][i] === player && board[2][i] === player) return true;
-            }
-            if (board[0][0] === player && board[1][1] === player && board[2][2] === player) return true;
-            if (board[0][2] === player && board[1][1] === player && board[2][0] === player) return true;
-            return false;
+        function checkWin(player, customBoard = board) {
+            const winPatterns = [
+                [0,1,2], [3,4,5], [6,7,8],
+                [0,3,6], [1,4,7], [2,5,8],
+                [0,4,8], [2,4,6]
+            ];
+            return winPatterns.some(pattern =>
+                pattern.every(index => customBoard[index] === player)
+            );
         }
 
-        function isBoardFull() {
-            return board.flat().every(cell => cell !== '');
+        function launchConfetti() {
+            const duration = 2 * 1000;
+            const end = Date.now() + duration;
+
+            (function frame() {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#bb0000', '#ffffff']
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#bb0000', '#ffffff']
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
         }
+
+        modeSelector.addEventListener("change", () => {
+            board = ["", "", "", "", "", "", "", "", ""];
+            currentPlayer = "X";
+            gameActive = true;
+            renderBoard();
+        });
+
+        renderBoard();
     </script>
+
+<div style="text-align: center; margin-top: 20px;">
+<button id="resetButton" onclick="resetGame()">Reset Game</button>
+</div>
 </body>
 </html>
