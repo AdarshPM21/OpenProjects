@@ -46,25 +46,6 @@
     </style>
 </head>
 <body>
-<table id="board">
-<tr>
-<td onclick="makeMove(this, 0, 0)"></td>
-<td onclick="makeMove(this, 0, 1)"></td>
-<td onclick="makeMove(this, 0, 2)"></td>
-</tr>
-<tr>
-<td onclick="makeMove(this, 1, 0)"></td>
-<td onclick="makeMove(this, 1, 1)"></td>
-<td onclick="makeMove(this, 1, 2)"></td>
-</tr>
-<tr>
-<td onclick="makeMove(this, 2, 0)"></td>
-<td onclick="makeMove(this, 2, 1)"></td>
-<td onclick="makeMove(this, 2, 2)"></td>
-</tr>
-</table>
-<div id="result" style="margin-top: 20px; font-size: 20px; font-weight: bold;"></div>
-
 <h1>Tic Tac Toe</h1>
 <div id="modeSelector">
 <label for="mode">Choose Mode:</label>
@@ -75,56 +56,7 @@
 </div>
 <div id="game"></div>
 <canvas id="confettiCanvas"></canvas>
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js">
-    let board = [
-        ["", "", ""],
-        ["", "", ""],
-        ["", "", ""]
-    ];
-    let currentPlayer = "X";
-    let gameOver = false;
-
-    function makeMove(cell, row, col) {
-        if (gameOver || board[row][col] !== "") return;
-        board[row][col] = currentPlayer;
-        cell.innerHTML = currentPlayer;
-        if (checkWinner(currentPlayer)) {
-            document.getElementById("result").innerText = currentPlayer + " wins!";
-            gameOver = true;
-        } else if (isBoardFull()) {
-            document.getElementById("result").innerText = "It's a draw!";
-            gameOver = true;
-        } else {
-            currentPlayer = currentPlayer === "X" ? "O" : "X";
-        }
-    }
-
-    function checkWinner(player) {
-        for (let i = 0; i < 3; i++) {
-            if (board[i][0] === player && board[i][1] === player && board[i][2] === player) return true;
-            if (board[0][i] === player && board[1][i] === player && board[2][i] === player) return true;
-        }
-        if (board[0][0] === player && board[1][1] === player && board[2][2] === player) return true;
-        if (board[0][2] === player && board[1][1] === player && board[2][0] === player) return true;
-        return false;
-    }
-
-    function isBoardFull() {
-        return board.flat().every(cell => cell !== "");
-    }
-
-    function resetGame() {
-        board = [
-            ["", "", ""],
-            ["", "", ""],
-            ["", "", ""]
-        ];
-        currentPlayer = "X";
-        gameOver = false;
-        document.querySelectorAll("#board td").forEach(cell => cell.innerHTML = "");
-        document.getElementById("result").innerText = "";
-    }
-    </script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <script>
         const gameContainer = document.getElementById('game');
         const modeSelector = document.getElementById('mode');
@@ -274,9 +206,9 @@
 
         renderBoard();
     </script>
-
-<div style="text-align: center; margin-top: 20px;">
-<button id="resetButton" onclick="resetGame()">Reset Game</button>
-</div>
-</body>
+<button id="resetButton" style="display: block; margin: 20px auto;">Reset</button><script>
+document.getElementById("resetButton").addEventListener("click", function() {
+    location.reload();
+});
+</script></body>
 </html>
