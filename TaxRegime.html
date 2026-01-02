@@ -1,515 +1,343 @@
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tax Regime Comparison</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f4f4f9;
-        }
-        .container {
-            max-width: 800px;
-            margin: auto;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            background-color: #fff;
-        }
-        .tabs {
-            display: flex;
-            cursor: pointer;
-            margin-bottom: 20px;
-        }
-        .tab {
-            flex: 1;
-            padding: 10px;
-            text-align: center;
-            background-color: #e9ecef;
-            border: 1px solid #ccc;
-            border-bottom: none;
-            border-radius: 10px 10px 0 0;
-        }
-        .tab.active {
-            background-color: #fff;
-            border-bottom: 1px solid #fff;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input[type="number"] {
-            width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        input[readonly] {
-            background-color: #e9ecef;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #218838;
-        }
-        .result {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #f8f9fa;
-        }
-        .error {
-            color: red;
-            margin-top: 10px;
-        }
-        .tooltip {
-            position: relative;
-            display: inline-block;
-            cursor: pointer;
-        }
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 200px;
-            background-color: #555;
-            color: #fff;
-            text-align: center;
-            border-radius: 5px;
-            padding: 5px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%; /* Position the tooltip above the text */
-            left: 50%;
-            margin-left: -100px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
-        }
-        .expandable {
-            cursor: pointer;
-            color: #007bff;
-            text-decoration: underline;
-        }
-        .sub-fields {
-            display: none;
-            margin-top: 10px;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Income Tax Calculator (India) – Old vs New Regime • FY 2025–26</title>
+  <style>
+    :root{
+      --bg:#0f172a; --panel:#111827; --panel2:#0b1220; --border:#1f2937; --text:#e2e8f0; --muted:#94a3b8;
+      --brand:#10b981; --accent:#38bdf8; --danger:#ef4444; --warn:#f59e0b; --ok:#22c55e;
+    }
+    [data-theme="light"]{
+      --bg:#f8fafc; --panel:#ffffff; --panel2:#f1f5f9; --border:#e2e8f0; --text:#0f172a; --muted:#475569;
+      --brand:#10b981; --accent:#0ea5e9;
+    }
+
+    html,body{height:100%}
+    body{margin:0; background:var(--bg); color:var(--text); font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+
+    header{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 24px;
+      background:var(--panel); border-bottom:1px solid var(--border)}
+    h1{margin:0; font-size:18px}
+    .wrap{max-width:1100px; margin:0 auto; padding:24px}
+
+    .btn{padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:var(--panel2); color:var(--text); cursor:pointer}
+    .btn:hover{filter:brightness(1.08)}
+    .row-actions{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+
+    .card{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px}
+
+    /* Segmented tabs (iOS-style) */
+    .seg{position:relative; display:flex; gap:0; background:var(--panel2); border:1px solid var(--border);
+      border-radius:12px; overflow:hidden; isolation:isolate; margin-bottom:12px}
+    .seg-btn{flex:1; padding:10px 12px; font-size:13px; color:#fff; background:transparent; border:0; cursor:pointer; z-index:2}
+    .seg-btn:focus-visible{outline:2px solid var(--accent); outline-offset:-2px}
+    .seg-slider{position:absolute; top:0; left:0; height:100%; width:25%; border-radius:12px; background:var(--accent);
+      box-shadow:inset 0 0 0 1px rgba(0,0,0,.25); z-index:1; transition:transform .25s ease}
+
+    /* Panels (mobile-first) */
+    .panel{margin-top:12px}
+    .hidden{display:none}
+
+    /* Inputs: compact + 3D-like effect (no overlap) */
+    .grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px}
+    @media (max-width: 840px){ .grid{grid-template-columns:1fr; gap:14px} }
+    label{display:block; margin:6px 0 4px; font-size:12px; color:var(--muted)}
+    input[type="number"], select{
+      width:100%; max-width:100%; min-width:0; box-sizing:border-box;
+      padding:4px 8px; font-size:12px; line-height:1.1; border-radius:10px;
+      border:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.08)), var(--panel2);
+      color:var(--text);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.10),
+        inset 0 -1px 0 rgba(0,0,0,.30),
+        0 2px 4px rgba(0,0,0,.30);
+    }
+    input[type="number"]:focus{
+      outline:none; border-color:rgba(56,189,248,.5);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.12),
+        inset 0 -1px 0 rgba(0,0,0,.40),
+        0 0 0 2px rgba(56,189,248,.25),
+        0 6px 14px rgba(14,165,233,.22);
+    }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0 }
+    input[type="number"]{ -moz-appearance:textfield }
+
+    .tiny{font-size:11px; color:var(--muted); margin-top:4px}
+    .ok{color:var(--ok)} .warn{color:var(--warn)} .err{color:var(--danger)}
+
+    table{width:100%; border-collapse:collapse}
+    th,td{padding:8px; border-bottom:1px dashed var(--border); text-align:right}
+    th:first-child, td:first-child{text-align:left}
+    .kpi{display:flex; gap:12px; flex-wrap:wrap}
+    .kpi .box{flex:1; min-width:220px; padding:12px; border-radius:12px; border:1px solid var(--border); background:var(--panel2)}
+    .kpi .num{font-size:20px; font-weight:700}
+    .badge{display:inline-block; padding:6px 10px; border-radius:999px; background:var(--brand); color:#052e2b; font-weight:600}
+    .note{background:var(--panel2); border:1px solid var(--border); padding:12px; border-radius:10px; margin-top:12px}
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Tax Regime Comparison</h2>
-        <div class="tabs">
-            <div class="tab active" onclick="showTab('incomeDetails')">Income Details</div>
-            <div class="tab" onclick="showTab('deductions')">Deductions</div>
-        </div>
-        <div id="incomeDetails" class="tab-content active">
-            <div class="form-group">
-                <label for="grossSalary">Gross Salary (before any Deduction/ Exemptions):</label>
-                <input type="number" id="grossSalary" value="0" required oninput="updateStandardDeduction()">
-            </div>
-            <div class="form-group">
-                <label for="leaveTravelAllowance">Leave Travel Allowance:</label>
-                <input type="number" id="leaveTravelAllowance" value="0" required oninput="updateStandardDeduction()">
-            </div>
-            <div class="form-group">
-                <label for="houseRentAllowance">House Rent Allowance:</label>
-                <input type="number" id="houseRentAllowance" value="0" required oninput="updateStandardDeduction()">
-            </div>
-            <div class="form-group">
-                <label for="otherExemptions">Other Exemptions:</label>
-                <input type="number" id="otherExemptions" value="0" required oninput="updateStandardDeduction()">
-            </div>
-            <div class="form-group">
-                <label for="standardDeduction">Standard Deduction:</label>
-                <input type="number" id="standardDeduction" value="0" readonly>
-            </div>
-            <div class="form-group">
-                <label for="professionTax">Profession Tax:</label>
-                <input type="number" id="professionTax" value="0" required>
-            </div>
-            <div class="form-group">
-                <label for="incomeFromHouseProperty" class="expandable" onclick="toggleHousePropertyFields()">Income From House Property (Less: Interest Deduction U/S 24):</label>
-                <input type="number" id="incomeFromHouseProperty" value="0" readonly>
-                <div class="sub-fields" id="housePropertyFields">
-                    <div class="form-group">
-                        <label for="interestSelfOccupied">Interest paid on self-occupied house property:</label>
-                        <input type="number" id="interestSelfOccupied" value="0" oninput="updateHouseProperty()">
-                    </div>
-                    <div class="form-group">
-                        <label for="annualRentalValue">Annual Rental value:</label>
-                        <input type="number" id="annualRentalValue" value="0" oninput="updateHouseProperty()">
-                    </div>
-                    <div class="form-group">
-                        <label for="propertyTaxPaid">Property Tax paid during the year:</label>
-                        <input type="number" id="propertyTaxPaid" value="0" oninput="updateHouseProperty()">
-                    </div>
-                    <div class="form-group">
-                        <label for="subTotal">Sub-total:</label>
-                        <input type="number" id="subTotal" value="0" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label for="standardDeduction2">Standard Deduction:</label>
-                        <input type="number" id="standardDeduction2" value="0" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label for="total">Total:</label>
-                        <input type="number" id="total" value="0" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label for="interestHousingLoan">Interest paid on housing loan:</label>
-                        <input type="number" id="interestHousingLoan" value="0" oninput="updateHouseProperty()">
-                    </div>
-                    <div class="form-group">
-                        <label for="taxableIncomeLetOut">Taxable income under the head of house-property - let out or deemed let-out:</label>
-                        <input type="number" id="taxableIncomeLetOut" value="0" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label for="totalIncomeHouseProperty">Total Income/ (loss) under the head of house-property:</label>
-                        <input type="number" id="totalIncomeHouseProperty" value="0" readonly>
-                    </div>
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="incomeFromOtherSource">Income from other source:</label>
-                <input type="number" id="incomeFromOtherSource" value="0" required>
-            </div>
-        </div>
-        <div id="deductions" class="tab-content">
-            <div class="form-group">
-                <label for="deduction80C" class="expandable" onclick="toggleSubFields()">80C to 80CCC & 80CCD(1) - Investment (max Rs 1,50,000):</label>
-                <input type="number" id="deduction80C" value="0" readonly>
-                <div class="sub-fields" id="subFields">
-                    <div class="form-group">
-                        <label for="providentFund">Provident Fund:</label>
-                        <input type="number" id="providentFund" value="0" oninput="updateDeduction80C()">
-                    </div>
-                    <div class="form-group">
-                        <label for="publicProvidentFund">Public Provident Fund:</label>
-                        <input type="number" id="publicProvidentFund" value="0" oninput="updateDeduction80C()">
-                    </div>
-					<div class="form-group">
-                        <label for="licPremium">Life Insurance Premium - LIC Premium:</label>
-                        <input type="number" id="licPremium" value="0" oninput="updateDeduction80C()">
-                    </div>
-                    <div class="form-group">
-                        <label for="elss">Equity Linked Savings Scheme (ELSS):</label>
-                        <input type="number" id="elss" value="0" oninput="updateDeduction80C()">
-                    </div>
-                    <div class="form-group">
-                        <label for="ulips">Unit Linked Insurance Plans (ULIPs):</label>
-                        <input type="number" id="ulips" value="0" oninput="updateDeduction80C()">
-                    </div>
-                    <div class="form-group">
-                        <label for="nsc">National Savings Certificate:</label>
-                        <input type="number" id="nsc" value="0" oninput="updateDeduction80C()">
-                    </div>
-                    <div class="form-group">
-                        <label for="homeLoanPrincipal">Repayment of home loan principal amount:</label>
-                        <input type="number" id="homeLoanPrincipal" value="0" oninput="updateDeduction80C()">
-                    </div>
-                    <div class="form-group">
-                        <label for="registrationCharges">Registration charges and stamp duty for a home/property:</label>
-                        <input type="number" id="registrationCharges" value="0" oninput="updateDeduction80C()">
-                    </div>
-                    <div class="form-group">
-                        <label for="tuitionFee">Children’s Tuition Fee:</label>
-                        <input type="number" id="tuitionFee" value="0" oninput="updateDeduction80C()">
-                    </div>
-                    <div class="form-group">
-                        <label for="infrastructureBonds">Infrastructure bonds:</label>
-                        <input type="number" id="infrastructureBonds" value="0" oninput="updateDeduction80C()">
-                    </div>
-                    <div class="form-group">
-                        <label for="nabardBonds">NABARD Rural Bonds:</label>
-                        <input type="number" id="nabardBonds" value="0" oninput="updateDeduction80C()">
-                    </div>
-                    <div class="form-group">
-                        <label for="sukanyaSamriddhi">Sukanya Samriddhi Scheme:</label>
-                        <input type="number" id="sukanyaSamriddhi" value="0" oninput="updateDeduction80C()">
-                    </div>
-                    <div class="form-group">
-                        <label for="seniorCitizenSavings">Senior Citizen Savings Scheme:</label>
-                        <input type="number" id="seniorCitizenSavings" value="0" oninput="updateDeduction80C()">
-                    </div>
-                    <div class="form-group">
-                        <label for="postOfficeFD">Five-year Post Office Time Deposit Scheme/ FD:</label>
-                        <input type="number" id="postOfficeFD" value="0" oninput="updateDeduction80C()">
-                    </div>
-                    <div class="form-group">
-                        <label for="annuityPlan">Amount deposited in LIC or other insurer’s annuity plan for a pension fund:</label>
-                        <input type="number" id="annuityPlan" value="0" oninput="updateDeduction80C()">
-                    </div>
-                    <div class="form-group">
-                        <label for="npsEmployee">Employee’s contribution to National Pension Scheme account:</label>
-                        <input type="number" id="npsEmployee" value="0" oninput="updateDeduction80C()">
-                    </div>
-                    <div class="form-group">
-                        <label for="otherInvestments">Any other investment eligible for benefit under section 80C:</label>
-                        <input type="number" id="otherInvestments" value="0" oninput="updateDeduction80C()">
-                    </div>
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="deduction80CCD1B">80CCD (1B) - NPS - Self Contribution (Over & above 150,000/-):</label>
-                <input type="number" id="deduction80CCD1B" value="0" required>
-            </div>
-            <div class="form-group">
-                <label for="deduction80CCD2">80CCD(2) - NPS - Employer contribution (10% of Basic salary):</label>
-                <input type="number" id="deduction80CCD2" value="0" required>
-            </div>
-            <div class="form-group">
-                <label for="deduction80D">80D - Mediclaim:</label>
-                <input type="number" id="deduction80D" value="0" required>
-            </div>
-            <div class="form-group">
-                <label for="deduction80DDB">80DDB - Medical treatment:</label>
-                <input type="number" id="deduction80DDB" value="0" required>
-            </div>
-            <div class="form-group">
-                <label for="deduction80DD">80DD - Person with disability- Dependents:</label>
-                <input type="number" id="deduction80DD" value="0" required>
-            </div>
-            <div class="form-group">
-                <label for="deduction80U">80U - Person with disability:</label>
-                <input type="number" id="deduction80U" value="0" required>
-            </div>
-            <div class="form-group">
-                <label for="deduction80E">80E - Interest on Education Loan:</label>
-                <input type="number" id="deduction80E" value="0" required>
-            </div>
-            <div class="form-group">
-                <label for="deduction80EE">80EE - Interest on Home Loan:</label>
-                <input type="number" id="deduction80EE" value="0" required>
-            </div>
-            <div class="form-group">
-                <label for="deduction80EEA">80EEA - Interest on Home Loan:</label>
-                <input type="number" id="deduction80EEA" value="0" required>
-            </div>
-            <div class="form-group">
-                <label for="deduction80EEB">80EEB - Electric Vehicle Loan Interest:</label>
-                <input type="number" id="deduction80EEB" value="0" required>
-            </div>
-            <div class="form-group">
-                <label for="deduction80TTA">80TTA - Interest on Saving Bank Account (upto Rs10,000):</label>
-                <input type="number" id="deduction80TTA" value="0" required>
-            </div>
-            <div class="form-group">
-                <label for="deduction80G">80G - Donation:</label>
-                <input type="number" id="deduction80G" value="0" required>
-            </div>
-            <div class="form-group">
-                <label for="otherDeductions">Other deductions, if any:</label>
-                <input type="number" id="otherDeductions" value="0" required>
-            </div>
-        </div>
-        <button onclick="calculateTax()">Calculate</button>
-        <div class="result" id="result"></div>
-        <div class="error" id="error"></div>
+  <header>
+    <h1>Income Tax Calculator – Old vs New Regime (FY 2025–26)</h1>
+    <div class="row-actions">
+      <button id="theme" class="btn">Toggle Theme</button>
+      <button id="reset" class="btn">Reset</button>
+      <button id="print" class="btn">Print / Save PDF</button>
     </div>
-    <script>
-        function showTab(tabId) {
-            const tabs = document.querySelectorAll('.tab');
-            const tabContents = document.querySelectorAll('.tab-content');
-            tabs.forEach(tab => tab.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
-            document.querySelector(`.tab[onclick="showTab('${tabId}')"]`).classList.add('active');
-            document.getElementById(tabId).classList.add('active');
-        }
+  </header>
 
-        function updateStandardDeduction() {
-            const grossSalary = parseFloat(document.getElementById('grossSalary').value) || 0;
-            const leaveTravelAllowance = parseFloat(document.getElementById('leaveTravelAllowance').value) || 0;
-            const houseRentAllowance = parseFloat(document.getElementById('houseRentAllowance').value) || 0;
-            const otherExemptions = parseFloat(document.getElementById('otherExemptions').value) || 0;
-            const standardDeduction = Math.min(50000, grossSalary - (leaveTravelAllowance + houseRentAllowance + otherExemptions));
-            document.getElementById('standardDeduction').value = standardDeduction;
-        }
+  <main class="wrap">
+    <!-- Segmented toggle (always used) -->
+    <div class="seg" role="tablist" aria-label="Input sections">
+      <button class="seg-btn" role="tab" id="tab1" aria-controls="panel1" aria-selected="true">Basics</button>
+      <button class="seg-btn" role="tab" id="tab2" aria-controls="panel2" aria-selected="false">House Property</button>
+      <button class="seg-btn" role="tab" id="tab3" aria-controls="panel3" aria-selected="false">Deductions</button>
+      <button class="seg-btn" role="tab" id="tab4" aria-controls="panel4" aria-selected="false">Results</button>
+      <div class="seg-slider" id="segSlider" aria-hidden="true"></div>
+    </div>
 
-        function toggleSubFields() {
-            const subFields = document.getElementById('subFields');
-            if (subFields.style.display === 'none' || subFields.style.display === '') {
-                subFields.style.display = 'block';
-            } else {
-                subFields.style.display = 'none';
-            }
-        }
+    <!-- Basics -->
+    <section id="panel1" class="panel" role="tabpanel" aria-labelledby="tab1">
+      <div class="card">
+        <h2>Basics</h2>
+        <div class="grid">
+          <div><label for="gross">Gross salary (₹)</label><input id="gross" type="number" min="0" step="1" value="0"/></div>
+          <div><label for="otherIncome">Other taxable income (₹)</label><input id="otherIncome" type="number" min="0" step="1" value="0"/></div>
+          <div><label for="lta">LTA exemption (old) (₹)</label><input id="lta" type="number" min="0" step="1" value="0"/></div>
+          <div><label for="hra">HRA exemption (old) (₹)</label><input id="hra" type="number" min="0" step="1" value="0"/></div>
+          <div><label for="otherExempt">Other exemptions (old) (₹)</label><input id="otherExempt" type="number" min="0" step="1" value="0"/></div>
+          <div><label for="profTax">Profession tax (old) (₹)</label><input id="profTax" type="number" min="0" step="1" value="0"/></div>
+          <div><label for="basicDA">Basic + DA (for 80CCD(2) cap) (₹)</label><input id="basicDA" type="number" min="0" step="1" value="0"/></div>
+        </div>
+      </div>
+    </section>
 
-        function updateDeduction80C() {
-            const providentFund = parseFloat(document.getElementById('providentFund').value) || 0;
-            const publicProvidentFund = parseFloat(document.getElementById('publicProvidentFund').value) || 0;
-            const licPremium = parseFloat(document.getElementById('licPremium').value) || 0;
-            const elss = parseFloat(document.getElementById('elss').value) || 0;
-            const ulips = parseFloat(document.getElementById('ulips').value) || 0;
-            const nsc = parseFloat(document.getElementById('nsc').value) || 0;
-            const homeLoanPrincipal = parseFloat(document.getElementById('homeLoanPrincipal').value) || 0;
-            const registrationCharges = parseFloat(document.getElementById('registrationCharges').value) || 0;
-            const tuitionFee = parseFloat(document.getElementById('tuitionFee').value) || 0;
-            const infrastructureBonds = parseFloat(document.getElementById('infrastructureBonds').value) || 0;
-            const nabardBonds = parseFloat(document.getElementById('nabardBonds').value) || 0;
-            const sukanyaSamriddhi = parseFloat(document.getElementById('sukanyaSamriddhi').value) || 0;
-            const seniorCitizenSavings = parseFloat(document.getElementById('seniorCitizenSavings').value) || 0;
-            const postOfficeFD = parseFloat(document.getElementById('postOfficeFD').value) || 0;
-            const annuityPlan = parseFloat(document.getElementById('annuityPlan').value) || 0;
-            const npsEmployee = parseFloat(document.getElementById('npsEmployee').value) || 0;
-            const otherInvestments = parseFloat(document.getElementById('otherInvestments').value) || 0;
+    <!-- House Property -->
+    <section id="panel2" class="panel hidden" role="tabpanel" aria-labelledby="tab2">
+      <div class="card">
+        <h2>House Property</h2>
+        <div class="grid">
+          <div><label for="hpSelfInterest">Self‑occupied interest (₹)</label><input id="hpSelfInterest" type="number" min="0" step="1" value="0"/></div>
+          <div><label for="hpARV">Annual rental value (₹)</label><input id="hpARV" type="number" min="0" step="1" value="0"/></div>
+          <div><label for="hpPropertyTax">Property tax paid (₹)</label><input id="hpPropertyTax" type="number" min="0" step="1" value="0"/></div>
+          <div><label for="hpLetInterest">Interest on let‑out (₹)</label><input id="hpLetInterest" type="number" min="0" step="1" value="0"/></div>
+        </div>
+        <div id="warnHP" class="tiny"></div>
+      </div>
+    </section>
 
-            const totalDeduction80C = providentFund + publicProvidentFund + licPremium + elss + ulips + nsc + homeLoanPrincipal + registrationCharges + tuitionFee + infrastructureBonds + nabardBonds + sukanyaSamriddhi + seniorCitizenSavings + postOfficeFD + annuityPlan + npsEmployee + otherInvestments;
-            document.getElementById('deduction80C').value = totalDeduction80C;
-        }
+    <!-- Deductions -->
+    <section id="panel3" class="panel hidden" role="tabpanel" aria-labelledby="tab3">
+      <div class="card">
+        <h2>Deductions</h2>
+        <div class="grid">
+          <!-- Old regime core -->
+          <div><label for="chVIa150">80C+80CCC+80CCD(1) (old) (₹)</label><input id="chVIa150" type="number" min="0" step="1" value="0"/></div>
+          <div><label for="nps1b">NPS self (80CCD(1B)) (old) (₹)</label><input id="nps1b" type="number" min="0" step="1" value="0"/></div>
 
-        function toggleHousePropertyFields() {
-            const housePropertyFields = document.getElementById('housePropertyFields');
-            if (housePropertyFields.style.display === 'none' || housePropertyFields.style.display === '') {
-                housePropertyFields.style.display = 'block';
-            } else {
-                housePropertyFields.style.display = 'none';
-            }
-        }
+          <!-- Employer NPS allowed in both regimes -->
+          <div><label for="nps2">80CCD(2) – NPS (Employer) (old & new) (₹)</label><input id="nps2" type="number" min="0" step="1" value="0"/></div>
 
-        function updateHouseProperty() {
-            const interestSelfOccupied = parseFloat(document.getElementById('interestSelfOccupied').value) || 0;
-            const annualRentalValue = parseFloat(document.getElementById('annualRentalValue').value) || 0;
-            const propertyTaxPaid = parseFloat(document.getElementById('propertyTaxPaid').value) || 0;
+          <!-- Additional Chapter VI-A deductions (old regime only) -->
+          <div><label for="d80d">80D – Mediclaim (₹)</label><input id="d80d" type="number" min="0" step="1" value="0"/></div>
+          <div><label for="d80ddb">80DDB – Medical treatment (₹)</label><input id="d80ddb" type="number" min="0" step="1" value="0"/></div>
+          <div><label for="d80dd">80DD – Disability (dependents) (₹)</label><input id="d80dd" type="number" min="0" step="1" value="0"/></div>
+          <div><label for="d80u">80U – Disability (self) (₹)</label><input id="d80u" type="number" min="0" step="1" value="0"/></div>
+          <div><label for="d80e">80E – Education loan interest (₹)</label><input id="d80e" type="number" min="0" step="1" value="0"/></div>
+          <div><label for="d80ee">80EE – Home loan interest (₹)</label><input id="d80ee" type="number" min="0" step="1" value="0"/></div>
+          <div><label for="d80eea">80EEA – Home loan interest (₹)</label><input id="d80eea" type="number" min="0" step="1" value="0"/></div>
+          <div><label for="d80eeb">80EEB – EV loan interest (₹)</label><input id="d80eeb" type="number" min="0" step="1" value="0"/></div>
+          <div><label for="d80tta">80TTA – Savings interest (₹)</label><input id="d80tta" type="number" min="0" step="1" value="0"/></div>
+          <div><label for="d80g">80G – Donation (₹)</label><input id="d80g" type="number" min="0" step="1" value="0"/></div>
+          <div><label for="dOther">Other deductions, if any (₹)</label><input id="dOther" type="number" min="0" step="1" value="0"/></div>
+        </div>
 
-            const subTotal = annualRentalValue - propertyTaxPaid;
-            document.getElementById('subTotal').value = subTotal;
+        <div class="tiny">
+          <span class="warn">Note:</span> Under the <b>new regime</b>, only <b>80CCD(2) – employer NPS</b> is counted; other entries are shown for transparency but <b>ignored</b> in new totals.
+        </div>
+        <div id="warnNPS2" class="tiny"></div>
+      </div>
+    </section>
 
-            const standardDeduction2 = subTotal * 0.3;
-            document.getElementById('standardDeduction2').value = standardDeduction2;
+    <!-- Results -->
+    <section id="panel4" class="panel hidden" role="tabpanel" aria-labelledby="tab4">
+      <div class="card">
+        <h2>Results</h2>
+        <div class="kpi">
+          <div class="box"><div class="num" id="finalOld">₹0</div></div>
+          <div class="box"><div class="num" id="finalNew">₹0</div></div>
+          <div class="box"><div class="badge" id="beneficial">—</div></div>
+        </div>
+        <table id="tbl">
+          <thead><tr><th>Metric</th><th>Old</th><th>New</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div class="note" id="explain"></div>
+      </div>
+    </section>
+  </main>
 
-            const total = subTotal - standardDeduction2;
-            document.getElementById('total').value = total;
+  <script>
+    const fmt = new Intl.NumberFormat('en-IN'), $ = id => document.getElementById(id);
+    const rupee = n => `₹${fmt.format(Math.round(n||0))}`, round10 = x => Math.round((x||0)/10)*10, pct=(x,p)=>(x||0)*p;
 
-            const interestHousingLoan = parseFloat(document.getElementById('interestHousingLoan').value) || 0;
+    // --- Tax math (unchanged from earlier working version) ---
+    function slabTaxOld(ti){ let t=0; if(ti<=250000)t=0; else if(ti<=500000)t=pct(ti-250000,0.05);
+      else if(ti<=1000000)t=pct(250000,0.05)+pct(ti-500000,0.20); else t=pct(250000,0.05)+pct(500000,0.20)+pct(ti-1000000,0.30); return Math.round(t)}
+    function slabTaxNew(ti){ if(ti<=400000)return 0; if(ti<=800000)return Math.round(pct(ti-400000,0.05));
+      if(ti<=1200000)return Math.round(20000+pct(ti-800000,0.10)); if(ti<=1600000)return Math.round(60000+pct(ti-1200000,0.15));
+      if(ti<=2000000)return Math.round(120000+pct(ti-1600000,0.20)); if(ti<=2400000)return Math.round(200000+pct(ti-2000000,0.25));
+      return Math.round(300000+pct(ti-2400000,0.30)) }
+    function rebate87AOld(ti,t){ return ti<=500000 ? t : 0 }
+    function rebate87ANew(ti,t){ if(ti<=1200000)return t; const mr=Math.min(t-(ti-1200000),60000); return Math.max(mr,0) }
+    function surchargeOld(ti,t){ if(ti<=5000000)return 0; if(ti<=10000000)return t*0.10; if(ti<=20000000)return t*0.15; if(ti<=50000000)return t*0.25; return t*0.37 }
+    function surchargeNew(ti,t){ if(ti<=5000000)return 0; if(ti<=10000000)return t*0.10; if(ti<=20000000)return t*0.15; return t*0.25 }
+    function marginalReliefSurchargeOld(ti, tb, sc){ const thr=[5000000,10000000,20000000,50000000]; let th=null; for(const x of thr){ if(ti>x) th=x }
+      if(!th) return 0; const diff=ti-th, taxAtThr=slabTaxOld(th), netThr=taxAtThr - rebate87AOld(th,taxAtThr), excess=(tb+sc)-netThr, relief=excess-diff; return relief>0?relief:0 }
+    function marginalReliefSurchargeNew(ti, tb, sc){ const thr=[5000000,10000000,20000000]; let th=null; for(const x of thr){ if(ti>x) th=x }
+      if(!th) return 0; const diff=ti-th, taxAtThr=slabTaxNew(th), netThr=taxAtThr - rebate87ANew(th,taxAtThr), excess=(tb+sc)-netThr, relief=excess-diff; return relief>0?relief:0 }
 
-            const taxableIncomeLetOut = total - interestHousingLoan;
-            document.getElementById('taxableIncomeLetOut').value = taxableIncomeLetOut;
+    const ids=[
+      'gross','otherIncome','lta','hra','otherExempt','profTax',
+      'hpSelfInterest','hpARV','hpPropertyTax','hpLetInterest',
+      'chVIa150','nps1b','nps2','basicDA',
+      // NEW Chapter VI-A fields
+      'd80d','d80ddb','d80dd','d80u','d80e','d80ee','d80eea','d80eeb','d80tta','d80g','dOther'
+    ];
 
-            const totalIncomeHouseProperty = taxableIncomeLetOut - interestSelfOccupied;
-            document.getElementById('totalIncomeHouseProperty').value = totalIncomeHouseProperty;
+    function getS(){ const s={}; ids.forEach(id=> s[id] = +($(id).value||0)); return s }
 
-            const incomeFromHouseProperty = Math.max(-200000, totalIncomeHouseProperty);
-            document.getElementById('incomeFromHouseProperty').value = incomeFromHouseProperty;
-        }
+    function compute(){
+      const s=getS(),
+        nav=Math.max(s.hpARV - s.hpPropertyTax, 0),
+        std30=nav*0.30, subTot=nav-std30,
+        letOld=subTot - s.hpLetInterest, letNew=Math.max(subTot - s.hpLetInterest, 0),
+        selfOld=-Math.min(s.hpSelfInterest, 200000),
+        hpOld=selfOld + letOld, hpNew=letNew,
 
-        function calculateTax() {
-            const grossSalary = parseFloat(document.getElementById('grossSalary').value);
-            const leaveTravelAllowance = parseFloat(document.getElementById('leaveTravelAllowance').value);
-            const houseRentAllowance = parseFloat(document.getElementById('houseRentAllowance').value);
-            const otherExemptions = parseFloat(document.getElementById('otherExemptions').value);
-            const standardDeduction = parseFloat(document.getElementById('standardDeduction').value);
-            const professionTax = parseFloat(document.getElementById('professionTax').value);
-            const incomeFromHouseProperty = parseFloat(document.getElementById('incomeFromHouseProperty').value);
-            const incomeFromOtherSource = parseFloat(document.getElementById('incomeFromOtherSource').value);
-            const deduction80C = parseFloat(document.getElementById('deduction80C').value);
-            const deduction80CCD1B = parseFloat(document.getElementById('deduction80CCD1B').value);
-            const deduction80CCD2 = parseFloat(document.getElementById('deduction80CCD2').value);
-            const deduction80D = parseFloat(document.getElementById('deduction80D').value);
-            const deduction80DDB = parseFloat(document.getElementById('deduction80DDB').value);
-            const deduction80DD = parseFloat(document.getElementById('deduction80DD').value);
-            const deduction80U = parseFloat(document.getElementById('deduction80U').value);
-            const deduction80E = parseFloat(document.getElementById('deduction80E').value);
-            const deduction80EE = parseFloat(document.getElementById('deduction80EE').value);
-            const deduction80EEA = parseFloat(document.getElementById('deduction80EEA').value);
-            const deduction80EEB = parseFloat(document.getElementById('deduction80EEB').value);
-            const deduction80TTA = parseFloat(document.getElementById('deduction80TTA').value);
-            const deduction80G = parseFloat(document.getElementById('deduction80G').value);
-            const otherDeductions = parseFloat(document.getElementById('otherDeductions').value);
-            const error = document.getElementById('error');
-            error.innerHTML = '';
-            if (isNaN(grossSalary) || isNaN(leaveTravelAllowance) || isNaN(houseRentAllowance) || isNaN(otherExemptions) || isNaN(standardDeduction) || isNaN(professionTax) || isNaN(incomeFromHouseProperty) || isNaN(incomeFromOtherSource) || isNaN(deduction80C) || isNaN(deduction80CCD1B) || isNaN(deduction80CCD2) || isNaN(deduction80D) || isNaN(deduction80DDB) || isNaN(deduction80DD) || isNaN(deduction80U) || isNaN(deduction80E) || isNaN(deduction80EE) || isNaN(deduction80EEA) || isNaN(deduction80EEB) || isNaN(deduction80TTA) || isNaN(deduction80G) || isNaN(otherDeductions)) {
-                error.innerHTML = 'Please enter valid numbers in all fields.';
-                return;
-            }
-            const exemptions = leaveTravelAllowance + houseRentAllowance + otherExemptions;
-            const deductions = standardDeduction + professionTax;
-            const totalIncome = grossSalary - exemptions - deductions + incomeFromHouseProperty + incomeFromOtherSource;
-            const chapterVIA = deduction80C + deduction80CCD1B + deduction80CCD2 + deduction80D + deduction80DDB + deduction80DD + deduction80U + deduction80E + deduction80EE + deduction80EEA + deduction80EEB + deduction80TTA + deduction80G + otherDeductions;
-            const taxableIncomeOldRegime = totalIncome - chapterVIA;
-            const taxableIncomeNewRegime = grossSalary + incomeFromHouseProperty + incomeFromOtherSource;
-            const oldRegimeTax = calculateOldRegimeTax(taxableIncomeOldRegime);
-            const newRegimeTax = calculateNewRegimeTax(taxableIncomeNewRegime);
-            const result = document.getElementById('result');
-            result.innerHTML = `
-                <h3>Tax Calculation Breakdown</h3>
-                <p><strong>Old Tax Regime:</strong></p>
-                <p>Taxable Income: ₹${taxableIncomeOldRegime.toFixed(2)}</p>
-                <p>Tax: ₹${oldRegimeTax.toFixed(2)}</p>
-                <p><strong>New Tax Regime:</strong></p>
-                <p>Taxable Income: ₹${taxableIncomeNewRegime.toFixed(2)}</p>
-                <p>Tax: ₹${newRegimeTax.toFixed(2)}</p>
-                <p><strong>Conclusion:</strong> ${oldRegimeTax < newRegimeTax ? 'Old Tax Regime is more beneficial.' : 'New Tax Regime is more beneficial.'}</p>
-            `;
-        }
+        stdOld=Math.min(50000, Math.max(s.gross - (s.lta + s.hra + s.otherExempt), 0)),
+        stdNew=Math.min(75000, s.gross),
+        salOld=Math.max(s.gross - (s.lta + s.hra + s.otherExempt) - stdOld - s.profTax, 0),
+        salNew=Math.max(s.gross - stdNew, 0),
 
-        function calculateOldRegimeTax(income) {
-            let tax = 0;
-            if (income <= 250000) {
-                tax = 0;
-            } else if (income <= 500000) {
-                tax = (income - 250000) * 0.05;
-            } else if (income <= 1000000) {
-                tax = 12500 + (income - 500000) * 0.2;
-            } else {
-                tax = 112500 + (income - 1000000) * 0.3;
-            }
-            // Add 4% Education and Cess
-            tax = tax * 1.04;
-            return tax;
-        }
+        d80c=Math.min(s.chVIa150, 150000),    // 80C + 80CCC + 80CCD(1)
+        d1b=Math.min(s.nps1b, 50000),         // 80CCD(1B)
+        capOld=s.basicDA>0 ? s.basicDA*0.10 : s.nps2,
+        capNew=s.basicDA>0 ? s.basicDA*0.14 : s.nps2,
+        d2Old=Math.min(s.nps2, capOld||s.nps2), // 80CCD(2) old
+        d2New=Math.min(s.nps2, capNew||s.nps2), // 80CCD(2) new
 
-        function calculateNewRegimeTax(income) {
-            let tax = 0;
-            if (income <= 400000) {
-                tax = 0;
-            } else if (income <= 800000) {
-                tax = (income - 400000) * 0.05;
-            } else if (income <= 1200000) {
-                tax = 20000 + (income - 800000) * 0.1;
-            } else if (income <= 1600000) {
-                tax = 60000 + (income - 1200000) * 0.15;
-            } else if (income <= 2000000) {
-                tax = 120000 + (income - 1600000) * 0.2;
-            } else if (income <= 2400000) {
-                tax = 200000 + (income - 2000000) * 0.25;
-            } else {
-                tax = 300000 + (income - 2400000) * 0.3;
-            }
-            // Apply rebate under Section 87A
-            if (income <= 1200000) {
-                tax -= 60000; // Maximum rebate of ₹60,000
-                if (tax < 0) {
-                    tax = 0;
-                }
-            }
-            // Add 4% Education and Cess
-            tax = tax * 1.04;
-            return tax;
-        }
-    </script>
+        // Sum of other Chapter VI-A deductions for OLD regime
+        oldOtherDed = s.d80d + s.d80ddb + s.d80dd + s.d80u + s.d80e +
+                      s.d80ee + s.d80eea + s.d80eeb + s.d80tta + s.d80g + s.dOther,
+
+        totOldPre=salOld + hpOld + s.otherIncome,
+        totNewPre=salNew + hpNew + s.otherIncome,
+
+        // OLD regime: subtract all allowed deductions
+        ntiOld=Math.max(totOldPre - (d80c + d1b + d2Old + oldOtherDed), 0),
+
+        // NEW regime: subtract ONLY 80CCD(2)
+        ntiNew=Math.max(totNewPre - d2New, 0),
+
+        rOld=round10(ntiOld), rNew=round10(ntiNew),
+        taxOld=slabTaxOld(rOld), taxNew=slabTaxNew(rNew),
+        rebOld=rebate87AOld(rOld, taxOld), rebNew=rebate87ANew(rNew, taxNew),
+        taxOldPost=Math.max(taxOld - rebOld, 0), taxNewPost=Math.max(taxNew - rebNew, 0),
+        scOld=surchargeOld(rOld, taxOldPost), scNew=surchargeNew(rNew, taxNewPost),
+        mrOld=marginalReliefSurchargeOld(rOld, taxOldPost, scOld), mrNew=marginalReliefSurchargeNew(rNew, taxNewPost, scNew),
+        scOldAdj=Math.max(scOld - mrOld, 0), scNewAdj=Math.max(scNew - mrNew, 0),
+        totalOld=taxOldPost + scOldAdj, totalNew=taxNewPost + scNewAdj,
+        cessOld=Math.round(totalOld * 0.04), cessNew=Math.round(totalNew * 0.04),
+        finalOld=Math.round(totalOld + cessOld), finalNew=Math.round(totalNew + cessNew);
+
+      // KPIs & result table
+      $('finalOld').textContent = rupee(finalOld);
+      $('finalNew').textContent = rupee(finalNew);
+      $('beneficial').textContent = finalNew < finalOld ? `NEW (saves ${rupee(finalOld-finalNew)})`
+                              : (finalOld < finalNew ? `OLD (saves ${rupee(finalNew-finalOld)})` : 'Equal');
+
+      const rows = [
+        ['Gross salary', s.gross, s.gross],
+        ['Salary (after exemptions/std. deduction)', salOld, salNew],
+        ['Income from house property', hpOld, hpNew],
+        ['Other income', s.otherIncome, s.otherIncome],
+        ['Total income (pre VI‑A)', totOldPre, totNewPre],
+        ['Deduction: 80C+80CCC+80CCD(1)', d80c + d1b, 0],
+        ['Deduction: 80CCD(2) – employer', d2Old, d2New],
+        ['Other Chapter VI‑A deductions', oldOtherDed, 0],
+        ['Net taxable income (rounded)', rOld, rNew],
+        ['Slab tax', taxOld, taxNew],
+        ['Rebate u/s 87A', rebOld, rebNew],
+        ['Tax after rebate', taxOldPost, taxNewPost],
+        ['Surcharge (post marginal relief)', scOldAdj, scNewAdj],
+        ['Health & Education Cess (4%)', cessOld, cessNew],
+        ['Final tax liability', finalOld, finalNew]
+      ];
+      $('rows').innerHTML = rows.map(r => `<tr><th>${r[0]}</th><td>${rupee(r[1])}</td><td>${rupee(r[2])}</td></tr>`).join('');
+
+      // Micro-validation: employer NPS caps
+      const npsWarn = (s.nps2 > (capOld||s.nps2) && s.nps2 > (capNew||s.nps2))
+        ? `⚠︎ Employer NPS ₹${rupee(s.nps2)} exceeds caps: Old ≈ 10% of Basic+DA (₹${rupee(capOld||0)}), New = 14% (₹${rupee(capNew||0)}).`
+        : (s.nps2 > (capOld||s.nps2))
+          ? `⚠︎ Exceeds Old regime cap (~10% of Basic+DA: ₹${rupee(capOld||0)}).`
+          : (s.nps2 > (capNew||s.nps2))
+            ? `⚠︎ Exceeds New regime cap (14% of Basic+DA: ₹${rupee(capNew||0)}).`
+            : `✓ Within typical caps for employer NPS.`;
+      $('warnNPS2').textContent = npsWarn;
+
+      const hpMsg = (s.hpSelfInterest>0 && hpNew===0)
+        ? `ℹ︎ New regime does not allow self‑occupied interest set‑off. Old regime permits up to ₹‑2,00,000.`
+        : '';
+      $('warnHP').textContent = hpMsg;
+    }
+
+    // Segmented toggle
+    const tabs=['tab1','tab2','tab3','tab4'], panels=['panel1','panel2','panel3','panel4'];
+    const slider=$('segSlider');
+
+    function setActiveTab(i){
+      panels.forEach((id,idx)=> { $(id).classList.toggle('hidden', idx!==i) });
+      tabs.forEach((id,idx)=> { $(id).setAttribute('aria-selected', idx===i ? 'true' : 'false') });
+      const seg = document.querySelector('.seg');
+      const w = seg.getBoundingClientRect().width;
+      const sw = w / tabs.length;
+      slider.style.width = sw + 'px';
+      slider.style.transform = `translateX(${i * sw}px)`;
+    }
+    tabs.forEach((id,idx)=> $(id).addEventListener('click', ()=>{ setActiveTab(idx); compute(); }));
+
+    // Keyboard arrows for tabs
+    document.querySelector('.seg').addEventListener('keydown', (e)=>{
+      const cur = tabs.findIndex(id=> $(id).getAttribute('aria-selected')==='true');
+      if(e.key==='ArrowRight'){ const n = (cur+1)%tabs.length; setActiveTab(n); $(tabs[n]).focus(); e.preventDefault() }
+      if(e.key==='ArrowLeft'){ const p = (cur-1+tabs.length)%tabs.length; setActiveTab(p); $(tabs[p]).focus(); e.preventDefault() }
+    });
+
+    // Theme toggle
+    $('theme').onclick = ()=>{
+      const cur = document.documentElement.getAttribute('data-theme');
+      document.documentElement.setAttribute('data-theme', cur==='light' ? 'dark' : 'light');
+    };
+
+    // Reset button
+    $('reset').onclick = ()=>{
+      ids.forEach(id=> $(id).value = 0);
+      setActiveTab(0);
+      compute();
+    };
+
+    // Print
+    $('print').onclick = ()=> window.print();
+
+    // Initialize
+    compute(); setActiveTab(0);
+  </script>
 </body>
 </html>
+``
